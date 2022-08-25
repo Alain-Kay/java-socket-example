@@ -1,38 +1,56 @@
-import java.io.BufferedReader;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
 
 public class Server {
-    public static void main(String[] args) {
+
+    private ServerSocket serverSocket;
+
+    public Server(ServerSocket serverSocket) {
+        this.serverSocket = serverSocket;
+    }
+
+    // Methode permettant de demarrer le serveur
+    public void demarrerServer() {
+
         try {
-            ServerSocket serverSocket = new ServerSocket(7777);
-            Socket socket = serverSocket.accept();
-            System.out.println("Client connecté");
+            while (!serverSocket.isClosed()) {
+                Socket socket = serverSocket.accept();
+                System.out.println(" nouveau client connecte");
+                ClientHandler clientHandler = new ClientHandler(socket);
 
-            while (true){
-                Scanner scanner = new Scanner(System.in);
-                System.out.print("Moi : ");
-                String msg_envoye = scanner.nextLine();
-                PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+                Thread thread = new Thread(clientHandler);
+                thread.start();
 
-                if (msg_envoye.equalsIgnoreCase("exit")) {
-                    printWriter.println("Aurevoir...");
-                    serverSocket.close();
-                    break;
-                }
-
-                printWriter.println(msg_envoye);
-
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                String msg_recu = bufferedReader.readLine();
-                System.out.println("Client : " + msg_recu);
             }
-        } catch (IOException e) {
+
+        }catch(IOException e){
             System.out.println(e.getMessage());
         }
     }
+
+
+    //Methode permettant de fermer le serveur
+    public void fermerServer() {
+        try {
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket  = new ServerSocket(7777);
+        Server server = new Server(serverSocket);
+        server.demarrerServer();
+
+    }
+
+
+
+
 }
+
+
